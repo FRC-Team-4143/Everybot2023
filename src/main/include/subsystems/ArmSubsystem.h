@@ -4,10 +4,13 @@
 #include <frc/XboxController.h>
 class ArmSubsystem : public frc2::SubsystemBase {
 public:
-    ArmSubsystem(int motorNumber, frc::XboxController* controller);
+    ArmSubsystem(frc::XboxController* controller);
+    void setArmMotor(double percentOutput);
 private:
-    double percentOutput = 0.40;
+   frc::XboxController* m_driverController;
     rev::CANSparkMax armMotor;
-    void setArmMotor();
-    frc::XboxController* m_Controller;
+    void Periodic() override;
+
+    
+    
 };

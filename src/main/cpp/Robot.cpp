@@ -3,6 +3,8 @@
 #include <frc2/command/CommandScheduler.h>
 #include <frc/DataLogManager.h>
 #include <wpi/DataLog.h>
+#include <frc2/command/SequentialCommandGroup.h>
+#include "commands/SetArmOutput.h"
 
 void Robot::RobotInit() {
 	frc::DataLogManager::Start();
@@ -39,7 +41,7 @@ void Robot::DisabledPeriodic() {
  * RobotContainer} class.
  */
 void Robot::AutonomousInit() {
-
+	//frc2::SequentialCommandGroup::SequentialCommandGroup(std::vector< std::unique_ptr<>>); 	
 }
 
 void Robot::AutonomousPeriodic() {

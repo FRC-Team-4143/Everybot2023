@@ -21,9 +21,9 @@ using namespace DriveConstants;
 
 DriveSubsystem::DriveSubsystem(frc::XboxController* controller, wpi::log::DataLog& log)
 :	m_frontLeft{kFrontLeftDriveMotorPort, kFrontLeftTurningMotorPort, kFrontLeftPot, "frontLeft", "roborio", log},
-	m_rearLeft{kRearLeftDriveMotorPort, kRearLeftTurningMotorPort, kRearLeftPot, "rearLeft", CANIVORE, log},
+	m_rearLeft{kRearLeftDriveMotorPort, kRearLeftTurningMotorPort, kRearLeftPot, "rearLeft", "roborio", log},
 	m_frontRight{kFrontRightDriveMotorPort, kFrontRightTurningMotorPort, kFrontRightPot, "frontRight", "roborio", log},
-	m_rearRight{kRearRightDriveMotorPort, kRearRightTurningMotorPort, kRearRightPot, "rearRight", CANIVORE, log},
+	m_rearRight{kRearRightDriveMotorPort, kRearRightTurningMotorPort, kRearRightPot, "rearRight", "roborio", log},
 	m_fieldCentric{false},
 	m_controller(controller),
 	m_log(log)
@@ -241,6 +241,7 @@ void DriveSubsystem::SetModuleStates(wpi::array<frc::SwerveModuleState, 4> desir
 	m_frontRight.SetVoltage(driveMax);
 	m_rearLeft.SetVoltage(driveMax);
 	m_rearRight.SetVoltage(driveMax);
+
 }
 
 // ==========================================================================

@@ -18,7 +18,7 @@
 #include <utility>
 #include "commands/DriveGyro.h"
 #include "commands/DriveLime.h"
-
+#include <iostream>
 #undef PATHWEAVER
 
 #ifdef PATHWEAVER
@@ -33,19 +33,20 @@
 #include "commands/ZeroYaw.h"
 
 using namespace DriveConstants;
-
+using namespace std;
 // ==========================================================================
 
 RobotContainer::RobotContainer()
 //, m_pickUp{&m_driverController}
-:	m_log{frc::DataLogManager::GetLog()}, m_drive{&m_driverController, m_log}, m_climber{&m_climberController, m_log},
+:	m_log{frc::DataLogManager::GetLog()}, m_drive{&m_driverController, m_log},m_newPickup(&m_driverController),
+m_arm(&m_driverController),
 	m_powerDistributionPanel{},
 	m_driveCommand{
 		[this] {
 			//auto x = -m_xspeedLimiter.Calculate(frc::ApplyDeadband(m_driverController.GetLeftY(), DriveConstants::stickDeadBand));
 			//auto y = -m_yspeedLimiter.Calculate(frc::ApplyDeadband(m_driverController.GetLeftX(),DriveConstants::stickDeadBand));
-			auto x = -frc::ApplyDeadband(m_driverController.GetLeftY(), DriveConstants::stickDeadBand);
-			auto y = -frc::ApplyDeadband(m_driverController.GetLeftX(),DriveConstants::stickDeadBand);
+			auto x = frc::ApplyDeadband(m_driverController.GetLeftY(), DriveConstants::stickDeadBand);
+			auto y = frc::ApplyDeadband(m_driverController.GetLeftX(),DriveConstants::stickDeadBand);
 			auto rot = -m_rotLimiter.Calculate(frc::ApplyDeadband(m_driverController.GetRightX(), DriveConstants::stickDeadBand));
 
 			double stickMagnitude = std::clamp(sqrt(pow(x, 2) + pow(y, 2)), -1., 1.);
@@ -93,9 +94,8 @@ RobotContainer::RobotContainer()
 
 	m_totalCurrent = wpi::log::DoubleLogEntry(m_log, "/robot/totalCurrent");
     m_batteryVoltage = wpi::log::DoubleLogEntry(m_log, "/robot/batteryVoltage");
-
-	m_pickUpCycleCommand = new PickUpCycle(&m_pickUp,&m_driverController);
-	m_pickUpCycleBounceCommand = new PickUpCycleBounce(&m_pickUp,&m_driverController);
+	
+	
 }
 
 // ==========================================================================
@@ -187,17 +187,39 @@ void RobotContainer::_ConfigureButtonBindings() {
 	// 	[this]() { m_pickUp.ShooterDistToggle(); },
 	// };
 
-	frc2::InstantCommand nextClimberStepCommand{
-		[this]() { m_climber.IndexStep(); },
-	};
+	// frc2::InstantCommand nextClimberStepCommand{
+	// 	[this]() { m_climber.IndexStep(); },
+	// };
 
-	frc2::InstantCommand previousClimberStepCommand{
-		[this]() { m_climber.BackStep(); },
-	};
+	// frc2::InstantCommand previousClimberStepCommand{
+	// 	[this]() { m_climber.BackStep(); },
+	// };
 
 	frc2::InstantCommand changeDriveModeComamnd{
 		[this]() { m_drive.ToggleFieldCentric(); },
 	};
+	frc2::InstantCommand intakeInCommand{
+		[this](){m_newPickup.setIntakeMotor(-m_driverController.GetLeftTriggerAxis());},
+	};
+	frc2::InstantCommand intakeOutCommand{
+		[this](){m_newPickup.setIntakeMotor(m_driverController.GetLeftTriggerAxis());},
+	};
+	frc2::FunctionalCommand ArmOutCommand{
+		[]() {},
+		[this]() {m_arm.setArmMotor(0.40); },
+		[this](bool) { m_arm.setArmMotor(0); },
+		[]() { return false; },
+	};
+	
+	frc2::FunctionalCommand ArmInCommand{
+		[]() {},
+		[this]() {m_arm.setArmMotor(-0.40); },
+		[this](bool) { m_arm.setArmMotor(0); },
+		[]() { return false; },
+	};
+
+
+	
 
 	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_A))->WhileHeld(rollerInCommand);
 	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_START))->WhenPressed(pickUpRetractCommand);
@@ -214,29 +236,30 @@ void RobotContainer::_ConfigureButtonBindings() {
 	// 	.OnTrue(&shooterSlowerCommand);
 	// frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kBack)
 	// 	.OnTrue(&shooterFasterCommand);
-	frc2::JoystickButton(&m_climberController, frc::XboxController::Button::kLeftBumper)
-		.OnTrue(&nextClimberStepCommand);
-	frc2::JoystickButton(&m_climberController, frc::XboxController::Button::kBack)
-		.OnTrue(&previousClimberStepCommand);
+	// frc2::JoystickButton(&m_climberController, frc::XboxController::Button::kLeftBumper)
+	// 	.OnTrue(&nextClimberStepCommand);
+	// frc2::JoystickButton(&m_climberController, frc::XboxController::Button::kBack)
+	// 	.OnTrue(&previousClimberStepCommand);
 
 	frc2::Trigger leftTrigger{
 		[this]() {
-			return m_driverController.GetLeftTriggerAxis() != 0;
+			return m_driverController.GetLeftTriggerAxis() > 0.2;
 		}
 	};
 	//leftTrigger.WhileTrue(&indexerOnCommand);
-
+	//leftTrigger.WhileTrue(&intakeInCommand);
 	frc2::Trigger rightTrigger{
 		[this]() {
-			return m_driverController.GetRightTriggerAxis() != 0;
+			return m_driverController.GetRightTriggerAxis() > 0.2;
 		}
 	};
 	//rightTrigger.WhileActiveContinous(shooterOnCommand);
-
-	frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kRightBumper).OnTrue(m_pickUpCycleCommand);
-	frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kLeftBumper).OnTrue(m_pickUpCycleBounceCommand);
-
-	frc::SmartDashboard::PutData("Zero Climber", new ZeroClimber(&m_climber));
+	//rightTrigger.WhileTrue(&intakeOutCommand);
+	//frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kRightBumper).WhileHeld(&ArmOutCommand);
+	//frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kLeftBumper).OnTrue(&ArmInCommand);
+	
+	
+	//frc::SmartDashboard::PutData("Zero Climber", new ZeroClimber(&m_climber));
 	frc::SmartDashboard::PutData("Set WheelOffsets", new SetWheelOffsets(&m_drive));
 	frc::SmartDashboard::PutData("Zero Yaw", new ZeroYaw(&m_drive));
 }

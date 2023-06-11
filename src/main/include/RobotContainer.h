@@ -21,6 +21,8 @@
 #include <frc/PowerDistribution.h>
 #include "commands/PickUpCycle.h"
 #include "commands/PickUpCycleBounce.h"
+#include "subsystems/NewPickupSubsystem.h"
+#include "subsystems/ArmSubsystem.h"
 
 /**
  * This class is where the bulk of the robot should be declared.  Since
@@ -40,12 +42,12 @@ public:
 	wpi::log::DataLog& m_log;
 
 	DriveSubsystem m_drive;
-	PickUpSubsystem m_pickUp;
-	ClimberSubsystem m_climber;
-	
+	//PickUpSubsystem m_pickUp;
+	//ClimberSubsystem m_climber;
+	NewPickupSubsystem m_newPickup;
 	frc::PowerDistribution m_powerDistributionPanel;
-
-
+	ArmSubsystem m_arm;
+	
 
 private:
 

@@ -81,7 +81,7 @@ namespace ModuleConstants {
 
 	constexpr double kPModuleTurningController = 1. / std::numbers::pi;
 	constexpr double kPSwerveModuleTurningController = 2. / std::numbers::pi;
-	constexpr double kPModuleDriveController = .5; //0.025;
+	constexpr double kPModuleDriveController = .2; //0.025; //15mar23 0.5
 	constexpr double kmaxTurnOutput = .5;
 
 	//DrivePIDConstants
