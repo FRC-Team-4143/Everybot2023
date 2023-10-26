@@ -24,7 +24,7 @@ DriveSubsystem::DriveSubsystem(frc::XboxController* controller, wpi::log::DataLo
 	m_rearLeft{kRearLeftDriveMotorPort, kRearLeftTurningMotorPort, kRearLeftPot, "rearLeft", "roborio", log},
 	m_frontRight{kFrontRightDriveMotorPort, kFrontRightTurningMotorPort, kFrontRightPot, "frontRight", "roborio", log},
 	m_rearRight{kRearRightDriveMotorPort, kRearRightTurningMotorPort, kRearRightPot, "rearRight", "roborio", log},
-	m_fieldCentric{false},
+	m_fieldCentric{true},
 	m_controller(controller),
 	m_log(log)
 {
@@ -90,7 +90,7 @@ void DriveSubsystem::Periodic() {
 	m_realDist = totDist;
 	//double m_realDist = -vy.value()*airTime/sin(m_offset);
 
-	m_currentYaw = m_pidgey.GetYaw() - m_zero;
+	m_currentYaw = m_Navx.GetYaw() - m_zero;
 
 	m_realSenseYaw = _GetYawFromRealSense().value();
 
@@ -193,7 +193,7 @@ void DriveSubsystem::Drive(
 	}
 	auto states = kDriveKinematics.ToSwerveModuleStates(
 		m_fieldCentric ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(
-			xSpeed, ySpeed, rot, GetHeading())
+			xSpeed, ySpeed, rot, -GetHeading())
 		: frc::ChassisSpeeds{xSpeed, ySpeed, rot}
 	);
 
@@ -262,23 +262,32 @@ units::degree_t DriveSubsystem::GetHeading() const {
 // ==========================================================================
 
 void DriveSubsystem::ZeroHeading() {
-//		m_pidgey.SetYaw(0,8);
-m_zero = m_pidgey.GetYaw();
+//		m_Navx.SetYaw(0,8);
+m_zero = m_Navx.GetYaw();
+m_realSenseZero = m_realSenseYaw;
+}
+
+void DriveSubsystem::SetHeading180() {
+//		m_Navx.SetYaw(0,8);
+m_zero = m_Navx.GetYaw() + 180;
+while(m_zero > 180) {
+	m_zero -= 360;
+}
 m_realSenseZero = m_realSenseYaw;
 }
 
 // ==========================================================================
 
 void DriveSubsystem::SetOffsetHeading(int heading){
-//	   m_pidgey.SetYaw(heading, 8);
-m_zero = m_pidgey.GetYaw() - heading;
+//	   m_Navx.SetYaw(heading, 8);
+m_zero = m_Navx.GetYaw() - heading;
 m_realSenseZero = m_realSenseYaw - heading;
 }
 
 // ==========================================================================
 
 double DriveSubsystem::GetTurnRate() {
-	return m_pidgey.GetRate();
+	return m_Navx.GetRate();
 }
 
 // ==========================================================================

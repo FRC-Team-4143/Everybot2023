@@ -25,6 +25,7 @@
 #include <frc/DataLogManager.h>
 #include <wpi/DataLog.h>
 #include <frc/kinematics/SwerveModuleState.h>
+#include <AHRS.h>
 
 class DriveSubsystem : public frc2::SubsystemBase {
 public:
@@ -76,6 +77,8 @@ public:
 	 * Zeroes the heading of the robot to Zero.
 	 */
 	void ZeroHeading();
+
+	void SetHeading180();
 
 	/**
 	 * Sets the heading of the robot to offset parameter.
@@ -132,7 +135,7 @@ private:
 	units::degree_t _GetYawFromRealSense();
 
 	// The gyro sensor
-	WPI_Pigeon2 m_pidgey{0, "Default Name"};
+	AHRS m_Navx{frc::SerialPort::Port::kUSB};
 
 
 	// Components (e.g. motor controllers and sensors) should generally be

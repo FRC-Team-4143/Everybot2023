@@ -42,6 +42,13 @@ void Robot::DisabledPeriodic() {
  */
 void Robot::AutonomousInit() {
 	//frc2::SequentialCommandGroup::SequentialCommandGroup(std::vector< std::unique_ptr<>>); 	
+	m_autonomousCommand = m_container.GetAutonomousCommand();
+
+	m_container.m_drive.SetHeading180();
+
+  if (m_autonomousCommand != nullptr) {
+    m_autonomousCommand->Schedule();
+  }
 }
 
 void Robot::AutonomousPeriodic() {
@@ -53,6 +60,10 @@ void Robot::TeleopInit() {
 	// m_container.m_pickUp.PickUpRetract();
 	// m_container.m_pickUp.RollerOff();
 	// m_container.m_pickUp.IndexerOff();
+	  if (m_autonomousCommand != nullptr) {
+    m_autonomousCommand->Cancel();
+    m_autonomousCommand = nullptr;
+  }
 }
 
 /**
@@ -60,7 +71,7 @@ void Robot::TeleopInit() {
  */
 void Robot::TeleopPeriodic() {
 	//m_container.m_pickUp.ShooterOn();
-	m_container.LogData();
+	//m_container.LogData();
 }
 
 /**

@@ -25,4 +25,5 @@ public:
 
 private:
 	RobotContainer m_container;
+	frc2::Command* m_autonomousCommand;
 };

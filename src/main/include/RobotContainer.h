@@ -9,6 +9,7 @@
 #include <frc2/command/Command.h>
 #include <frc2/command/PIDCommand.h>
 #include <frc2/command/RunCommand.h>
+#include <frc2/command/SwerveControllerCommand.h>
 #include "subsystems/ClimberSubsystem.h"
 #include "subsystems/DriveSubsystem.h"
 #include "subsystems/PickUpSubsystem.h"
@@ -21,8 +22,14 @@
 #include <frc/PowerDistribution.h>
 #include "commands/PickUpCycle.h"
 #include "commands/PickUpCycleBounce.h"
+#include "commands/Autos.h"
 #include "subsystems/NewPickupSubsystem.h"
 #include "subsystems/ArmSubsystem.h"
+#include "frc/smartdashboard/SendableChooser.h"
+#include <frc2/command/SequentialCommandGroup.h>
+#include <frc2/command/Commands.h>
+
+
 
 /**
  * This class is where the bulk of the robot should be declared.  Since
@@ -47,11 +54,16 @@ public:
 	NewPickupSubsystem m_newPickup;
 	frc::PowerDistribution m_powerDistributionPanel;
 	ArmSubsystem m_arm;
-	
+
+	frc::SendableChooser<frc2::Command*> m_chosser;
+
+	frc2::Command* GetAutonomousCommand();
 
 private:
 
 	frc2::RunCommand m_driveCommand;
+
+	frc2::CommandPtr m_simpleAuto = autos::SimpleAuto(&m_drive, &m_arm, &m_newPickup);
 
 	frc::XboxController m_driverController{OIConstants::kDriverControllerPort};
 	frc::XboxController m_climberController{OIConstants::kClimberControllerPort};

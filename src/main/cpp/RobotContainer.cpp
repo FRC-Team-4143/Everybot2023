@@ -8,10 +8,9 @@
 #include <frc2/command/button/Trigger.h>
 #include <frc2/command/FunctionalCommand.h>
 #include <frc2/command/InstantCommand.h>
-#include <frc2/command/SequentialCommandGroup.h>
-#include <frc2/command/SwerveControllerCommand.h>
 #include <frc2/command/WaitCommand.h>
 #include <frc2/command/WaitUntilCommand.h>
+#include <frc2/command/SequentialCommandGroup.h>
 #include <networktables/NetworkTableEntry.h>
 #include <units/angle.h>
 #include <units/velocity.h>
@@ -75,6 +74,11 @@ m_arm(&m_driverController),
 				units::meters_per_second_t(y * DriveConstants::kMaxSpeed * power),
 				units::radians_per_second_t(rot * DriveConstants::kMaxAngularSpeed * rotMod)
 			);
+
+
+			//frc2::CommandPtr m_simpleAuto = autos::SimpleAuto(&m_drive);
+			// frc2::CommandPtr m_simpleAuto = auto::SimpleAuto(&m_drive);
+
 		},
 		{&m_drive}
 	}
@@ -83,7 +87,7 @@ m_arm(&m_driverController),
 
 	_ConfigureButtonBindings();
 
-	frc::DataLogManager::Start();
+	//frc::DataLogManager::Start();
 
 	frc::LiveWindow::DisableAllTelemetry();
 
@@ -92,8 +96,8 @@ m_arm(&m_driverController),
 	// Turning is controlled by the X axis of the right stick.
 	m_drive.SetDefaultCommand(m_driveCommand);
 
-	m_totalCurrent = wpi::log::DoubleLogEntry(m_log, "/robot/totalCurrent");
-    m_batteryVoltage = wpi::log::DoubleLogEntry(m_log, "/robot/batteryVoltage");
+	//m_totalCurrent = wpi::log::DoubleLogEntry(m_log, "/robot/totalCurrent");
+    //m_batteryVoltage = wpi::log::DoubleLogEntry(m_log, "/robot/batteryVoltage");
 	
 	
 }
@@ -109,6 +113,7 @@ void RobotContainer::LogData() {
 }
 
 // ==========================================================================
+
 
 void RobotContainer::_ConfigureButtonBindings() {
 	// frc2::InstantCommand pickUpBounceCommand{
@@ -188,7 +193,7 @@ void RobotContainer::_ConfigureButtonBindings() {
 	// };
 
 	// frc2::InstantCommand nextClimberStepCommand{
-	// 	[this]() { m_climber.IndexStep(); },
+	// 	[this]() { m_calimber.IndexStep(); },
 	// };
 
 	// frc2::InstantCommand previousClimberStepCommand{
@@ -204,32 +209,49 @@ void RobotContainer::_ConfigureButtonBindings() {
 	frc2::InstantCommand intakeOutCommand{
 		[this](){m_newPickup.setIntakeMotor(m_driverController.GetLeftTriggerAxis());},
 	};
+	frc2::InstantCommand manualArmIn{
+		[this](){m_newPickup.setIntakeMotor(m_driverController.GetLeftTriggerAxis());},
+	};
+
 	frc2::FunctionalCommand ArmOutCommand{
 		[]() {},
-		[this]() {m_arm.setArmMotor(0.40); },
+		[this]() {m_arm.setArmMotor(-.215); },
 		[this](bool) { m_arm.setArmMotor(0); },
 		[]() { return false; },
 	};
 	
 	frc2::FunctionalCommand ArmInCommand{
 		[]() {},
-		[this]() {m_arm.setArmMotor(-0.40); },
+		[this]() {m_arm.setArmMotor(.225); },
 		[this](bool) { m_arm.setArmMotor(0); },
 		[]() { return false; },
 	};
 
-
+	frc2::FunctionalCommand AutoArm{
+		[this]() {},
+		[this]() {m_arm.setArmMotor(-.215); m_newPickup.autoOut(m_arm.isArmOut());},
+		[this](bool) { m_arm.setArmMotor(0); },
+		[]() {return false;},
+	};
 	
+	//frc2::SequentialCommandGroup placeAuto =  new SequentialCommandGroup{AutoArm.WithTimeout(3.0_s)};
 
-	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_A))->WhileHeld(rollerInCommand);
-	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_START))->WhenPressed(pickUpRetractCommand);
+	(new frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kLeftBumper))->WhileHeld(ArmInCommand);
+	(new frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kRightBumper))->WhileHeld(ArmOutCommand);
 	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_RB))->WhenPressed(shooterFasterCommand);
-	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_X))->WhileHeld(indexerOnCommand);
+	//(new frc2::JoystickButton(&m_driverController, JOYSTICK_BUTTON_X))->WhileHeld(AutoArm);
 
-	// frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kY)
-	// 	.OnTrue(&shooterDistToggleCommand);
-	frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kLeftStick)
-		.OnTrue(&changeDriveModeComamnd);
+	(new frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kX))
+	->WhileHeld(AutoArm);
+		
+	/*	frc2::FunctionalCommand (
+		[this]() {m_arm.setArmMotor(0.40);},
+		[this]() {m_newPickup.autoOut(m_arm.isArmOut());},
+		[this](bool) { m_arm.setArmMotor(0); },
+		[]() { return false; }
+	).ToPtr());*/
+	//frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kLeftStick)
+	//	.OnTrue(&changeDriveModeComamnd);
 	// frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kB)
 	// 	.WhileTrue(&indexerRevCommand);
 	// frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kStart)
@@ -257,9 +279,15 @@ void RobotContainer::_ConfigureButtonBindings() {
 	//rightTrigger.WhileTrue(&intakeOutCommand);
 	//frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kRightBumper).WhileHeld(&ArmOutCommand);
 	//frc2::JoystickButton(&m_driverController, frc::XboxController::Button::kLeftBumper).OnTrue(&ArmInCommand);
+
+	
 	
 	
 	//frc::SmartDashboard::PutData("Zero Climber", new ZeroClimber(&m_climber));
 	frc::SmartDashboard::PutData("Set WheelOffsets", new SetWheelOffsets(&m_drive));
 	frc::SmartDashboard::PutData("Zero Yaw", new ZeroYaw(&m_drive));
+}
+
+frc2::Command* RobotContainer::GetAutonomousCommand() {
+	return  m_simpleAuto.get();
 }
